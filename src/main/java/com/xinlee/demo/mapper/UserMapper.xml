@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinlee.demo.mapper.UserMapper">
+
+    <select id="selectUserList" resultType="com.xinlee.demo.pojo.User">
+        SELECT * FROM t_user;
+    </select>
+
+    <insert id="insertUser" parameterType="com.xinlee.demo.pojo.User">
+        <!--
+            某些场景的时候可能需要我们获取插入数据的某些字段，例如id是自增的，我们无法知悉刚插入的那条数据的id是多少可以通过selectKey来获取
+            keyProperty：User对象对应的主键
+            order：在sql执行前/后执行selectKey
+            resultType：id主键的数据类型
+
+            SELECT LAST_INSERT_ID();是MySQL内部的方法，获取最后一次插入ID的值
+            <selectKey keyProperty="id" order="AFTER" resultType="integer">
+                SELECT LAST_INSERT_ID();
+            </selectKey>
+            如果是Oracle使用sequence.nextval();
+
+            selectKey只能有一个，出现多个会导致mybatis解析xml错误
+            selectKey获取到的值可以在SQL语句中引用，且会被封装到User对象的对应属性中
+        -->
+
+        <!-- SELECT UUID();是MySQL内部的方法，生成36位的UUID值 -->
+        <selectKey keyProperty="uuid" order="BEFORE" resultType="String">
+            SELECT UUID();
+        </selectKey>
+
+        <!-- 因为设置了t_user表的主键是自增的，所以不需要插入ID的值，表会自动生成 -->
+        INSERT INTO t_user (uuid, username, birthday) VALUES (#{uuid}, #{username}, #{birthday});
+    </insert>
+
+    <delete id="deleteUserByName" parameterType="java.lang.String">
+        <!-- 实际开发时会添加一个标识，通常不会真的删除数据，而是将标识置为不可用，表示该条数据已不可用 -->
+        DELETE FROM t_user WHERE username = #{username};
+    </delete>
+</mapper>
